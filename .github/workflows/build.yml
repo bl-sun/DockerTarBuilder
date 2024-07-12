@@ -1,13 +1,13 @@
-name: Export docker images
+name: Pull Docker Images and Package
 on:
   workflow_dispatch:
     inputs:
       docker_images:
-        description: 请填写docker镜像名称 多个用英文逗号分开
+        description: Input the image name, can be multiple image names separated by ','
         required: true
-        default: 'alpine:latest,ubuntu:latest'  # 设置默认的 Docker 镜像列表
+        default: 'alpine:latest,ubuntu:latest'
       arch:
-        description: 系统架构
+        description: arch
         required: true
         default: amd64
         type: choice
@@ -43,9 +43,8 @@ jobs:
           docker save "${image}" -o "${image//\//_}-${{ github.event.inputs.arch }}.tar"
         done
 
-    - name: Compress the TAR files
+    - name: Compress the saved docker images
       run: |
-        tar -czf ${{ github.event.inputs.arch }}-images.tar.gz *-${{ github.event.inputs.arch }}.tar
         tar -cJf ${{ github.event.inputs.arch }}-images.tar.xz *-${{ github.event.inputs.arch }}.tar
         ls -l *
 
@@ -53,9 +52,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ github.event.inputs.arch }}-docker-images
-        path: ${{ github.event.inputs.arch }}-images.tar.gz
-        retention-days: 1  # 将保留天数设置为 1 天 最多可设置90天
-
-    - name: Clean up intermediate files
-      run: |
-        rm *-${{ github.event.inputs.arch }}.*
+        path: ${{ github.event.inputs.arch }}-images.tar.xz
+        retention-days: 30
