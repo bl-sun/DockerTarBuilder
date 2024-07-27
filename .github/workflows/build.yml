@@ -15,6 +15,15 @@ on:
           - amd64
           - arm64
           - arm32
+      compressor:
+        description: Select the compression tool to use
+        required: true
+        default: .tar
+        type: choice
+        options:
+          - .tar
+          - .tar.gz
+          - .tar.gx
       release:
         description: Weather to publish the images to release for persistent store
         required: true
@@ -51,14 +60,19 @@ jobs:
 
     - name: Compress the saved docker images
       run: |
-        tar -cJf ${{ github.event.inputs.arch }}-images.tar.xz *-${{ github.event.inputs.arch }}.tar
+        compressor=${{ github.event.inputs.compressor }}
+        if [[ $compressor == '.tar.xz' ]]; then
+          tar -cJf ${{ github.event.inputs.arch }}-images.tar.xz *-${{ github.event.inputs.arch }}.tar
+        elif [[ $compressor == '.tar.gz' ]]; then
+          tar -zcf ${{ github.event.inputs.arch }}-images.tar.gz *-${{ github.event.inputs.arch }}.tar
+        fi
         ls -lah .
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: ${{ github.event.inputs.arch }}-docker-images
-        path: ${{ github.event.inputs.arch }}-images.tar.xz
+        path: ${{ github.event.inputs.arch }}-images${{ github.event.inputs.compressor }}
         retention-days: 30 # retained for 30 days
         compression-level: 0 # no compression for the xz compress file
 
