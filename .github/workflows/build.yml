@@ -23,7 +23,7 @@ on:
         options:
           - .tar
           - .tar.gz
-          - .tar.gx
+          - .tar.xz
       release:
         description: Weather to publish the images to release for persistent store
         required: true
